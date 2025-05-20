@@ -4,12 +4,18 @@
 
 int main() {
   sf::Image inputImage;
-  if (!inputImage.loadFromFile("./patterns/original/orecchino.png"))
+  if (!inputImage.loadFromFile("./patterns/original/ledzeppelin.jpg"))
     return -1;
 
-  auto pixels{img::getPixels(inputImage)};
-
   sf::Image resizedImage{img::resize(inputImage)};
-  if (!resizedImage.saveToFile("./patterns/resized/result.png"))
+  auto binaryVector{img::binaryConvert(resizedImage)};
+
+  // for (int i{0}; i < binaryVector.size(); ++i) {
+  //   std::cout << binaryVector[i] << ' ';
+  // }
+  // std::cout << '\n';
+  sf::Image binary(img::formImage(binaryVector));
+
+  if (!binary.saveToFile("./patterns/binary/result.png"))
     return -1;
 }

@@ -75,8 +75,45 @@ sf::Image resize(const sf::Image& source) { // bilinear interpolation
       resized.setPixel(x, y, C);
     }
   }
-
   return resized;
+}
+
+std::vector<int>
+binaryConvert(sf::Image source) { // converts image to binary
+  auto pixels{getPixels(source)};
+  std::vector<int> binary{};
+
+  for (int i{0}; i < pixels.size(); ++i) {
+    int colorAvg{
+        static_cast<int>((pixels[i].r + pixels[i].b + pixels[i].g) / 3)};
+    if (colorAvg >= 127) {
+      binary.push_back(+1);
+    } else {
+      binary.push_back(-1);
+    }
+  }
+  return binary;
+}
+
+sf::Image formImage(std::vector<int> binary) { // forms NxN image
+  sf::Image result;
+  int N{64};
+  result.create(N, N);
+  // controlla che binary.size() abbia senso
+
+  int i{0};
+  for(int y{0}; y < N; ++y) {
+  for(int x{0}; x < N; ++x) {
+    if (binary[i] == -1) {
+      result.setPixel(x, y, sf::Color::Black);
+    } else {
+      result.setPixel(x, y, sf::Color::White);
+    }
+    ++i;
+  }
+  }
+
+  return result;
 }
 
 } // namespace img
