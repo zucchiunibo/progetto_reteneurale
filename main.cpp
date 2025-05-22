@@ -4,7 +4,7 @@
 
 int main() {
   sf::Image inputImage;
-  if (!inputImage.loadFromFile("./patterns/original/ledzeppelin.jpg"))
+  if (!inputImage.loadFromFile("./patterns/original/kirby.png"))
     return -1;
 
   sf::Image resizedImage{img::resize(inputImage)};
@@ -12,9 +12,9 @@ int main() {
 
   sf::Image binary(img::formImage(binaryVector));
 
-  if (!resizedImage.saveToFile("./patterns/resized/ledzeppelin.png"))
+  if (!resizedImage.saveToFile("./patterns/resized/kirby.png"))
     return -1;
   
-  if (!binary.saveToFile("./patterns/binary/ledzeppelin.png"))
+  if (!binary.saveToFile("./patterns/binary/kirby.png"))
     return -1;
 }
