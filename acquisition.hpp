@@ -3,7 +3,6 @@
 
 #include <SFML/Graphics/Image.hpp>
 #include <algorithm>
-#include <iostream>
 #include <vector>
 
 namespace img {
@@ -78,8 +77,7 @@ sf::Image resize(const sf::Image& source) { // bilinear interpolation
   return resized;
 }
 
-std::vector<int>
-binaryConvert(sf::Image source) { // converts image to binary
+std::vector<int> binaryConvert(sf::Image source) { // converts image to binary
   auto pixels{getPixels(source)};
   std::vector<int> binary{};
 
@@ -102,15 +100,15 @@ sf::Image formImage(std::vector<int> binary) { // forms NxN image
   // controlla che binary.size() abbia senso
 
   int i{0};
-  for(int y{0}; y < N; ++y) {
-  for(int x{0}; x < N; ++x) {
-    if (binary[i] == -1) {
-      result.setPixel(x, y, sf::Color::Black);
-    } else {
-      result.setPixel(x, y, sf::Color::White);
+  for (int y{0}; y < N; ++y) {
+    for (int x{0}; x < N; ++x) {
+      if (binary[i] == -1) {
+        result.setPixel(x, y, sf::Color::Black);
+      } else {
+        result.setPixel(x, y, sf::Color::White);
+      }
+      ++i;
     }
-    ++i;
-  }
   }
 
   return result;
