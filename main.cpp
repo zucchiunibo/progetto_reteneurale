@@ -4,8 +4,10 @@
 #include <iostream>
 
 int main() {
+    hope::clearMatrixDirectory("./matrix");
+  hope::clearMatrixDirectory("./patterns/recall");
   std::vector<std::string> patternNames = {"kirby.png", "exuvia.jpg",
-                                           "ledzeppelin.jpg", "orecchino.png"};
+                                           "A.jpg"};
   std::vector<std::vector<int>> patterns;
 
   // FASE DI APPRENDIMENTO
@@ -42,16 +44,16 @@ int main() {
     patterns.push_back(binaryVector);
   }
 
-  auto W = learn::computeWeightMatrix(patterns); // creare la matrice W
-  learn::saveWeightMatrix(
-      W, "./WeightsMatrix.txt"); // stampare su file testo la matrice
+  auto W = hope::computeMatrix(patterns);
+  hope::saveMatrix(
+      W, "./matrix/WeightMatrix.txt"); // stampare su file testo la matrice
 
   std::cout << "Fase di apprendimento completata e matrice salvata.\n";
 
   // FASE DI CORRUZIONE
   sf::Image subject;
   if (!subject.loadFromFile("./patterns/original/exuvia.jpg")) {
-    std::cerr << "Errore nel caricamento dell'immagine orecchino.png\n";
+    std::cerr << "Errore nel caricamento dell'immagine kirby.jpg\n";
     return -1;
   }
 
@@ -65,14 +67,15 @@ int main() {
   }
 
   // FASE DI RICHIAMO (RECALL)
-  auto recallVector{rcl::recall(corruptedSubject, W)};
+  auto recallVector{hope::recallIA(corruptedSubject, W)};
   sf::Image binaryR(hope::formImage(recallVector));
 
-  if (!binaryR.saveToFile("./patterns/binary/resultRecallFinal.png")) {
+  if (!binaryR.saveToFile("./patterns/recall/resultRecallFinal.png")) {
     std::cerr << "Errore nel salvataggio dell'immagine finale richiamata\n";
     return -1;
   }
 
   std::cout << "Fase di richiamo completata e immagine finale salvata.\n";
+
   return 0;
 }
