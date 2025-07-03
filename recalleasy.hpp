@@ -52,7 +52,7 @@ std::vector<int> recall(std::vector<int> corrupted,
     double current_energy = energy(newVector, W);
     std::cout << "Energia attuale: " << current_energy << '\n';
 
-    // ⚠️ Controllo diagnostico: se l'energia aumenta, c'è un errore
+    // Controllo diagnostico: se l'energia aumenta, c'è un errore
     if (current_energy > prev_energy + 1e-6) {
       std::cerr << "Errore: energia aumentata! La rete non sta convergendo.\n";
       break;
@@ -61,7 +61,7 @@ std::vector<int> recall(std::vector<int> corrupted,
     prev_energy = current_energy;
 
     // Salvataggio e visualizzazione dell'immagine attuale
-    sf::Image recallImage = img::formImage(newVector);
+    sf::Image recallImage = hope::formImage(newVector);
 
     if (!recallImage.saveToFile("./patterns/binary/resultRecall.png")) {
       std::cerr << "Errore: impossibile salvare l'immagine resultRecall.png\n";

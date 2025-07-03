@@ -3,9 +3,10 @@
 
 #include <SFML/Graphics/Image.hpp>
 #include <algorithm>
+#include <random>
 #include <vector>
 
-namespace img {
+namespace hope {
 
 std::vector<sf::Color> getPixels(const sf::Image& source) {
   auto pixelArray{
@@ -79,7 +80,8 @@ sf::Image resize(const sf::Image& source) { // bilinear interpolation
   return resized;
 }
 
-std::vector<int> binaryConvert(sf::Image source) { // converts image to binary
+std::vector<int> binaryConvert(sf::Image source) { // converts resized image to binary
+  //controlla che l'immagine sia già 64x64
   auto pixels{getPixels(source)};
   std::vector<int> binary{};
 
@@ -116,6 +118,27 @@ sf::Image formImage(std::vector<int> binary) { // forms NxN image
   return result;
 }
 
-} // namespace img
+auto corruption(std::vector<int> binary) { // corrupts 10% of the image
+  std::default_random_engine eng(std::random_device{}());
+  std::uniform_real_distribution<double> dist_x{0., 10.};
+  for (int n{0}; n < (64 * 64); ++n) {
+    if (dist_x(eng) > 9) {
+      binary[n] *= -1;
+    }
+  }
+  return binary;
+}
+
+auto directBinaryConvert(sf::Image source) { // converts and resizes original image to binary
+  auto resized{resize(source)};
+  return binaryConvert(resized);
+}
+
+auto directCorrupt (sf::Image source) { // resizes, converts, and corrupts original image
+  auto binary{directBinaryConvert(source)};
+  return corruption(binary);
+}
+
+} // namespace hope
 
 #endif
