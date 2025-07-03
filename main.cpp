@@ -6,7 +6,8 @@
 int main() {
   hope::clearDirectory("./matrix");
   hope::clearDirectory("./patterns/recall");
-  std::vector<std::string> patternNames = {"kirby.png", "A.jpg", "ledzeppelin.jpg", "exuvia.jpg"};
+  std::vector<std::string> patternNames = {"kirby.png", "A.jpg", "ledzeppelin.jpg", "exuvia.jpg",
+                                           "spaceinv.jpg"};
   std::vector<std::vector<int>> patterns;
 
   // FASE DI APPRENDIMENTO
@@ -21,22 +22,19 @@ int main() {
     auto binaryVector{hope::binaryConvert(resizedImage)};
 
     if (static_cast<int>(binaryVector.size()) != 64 * 64) {
-      std::cerr << "Errore: dimensione pattern non valida per "
-                << patternNames[i] << '\n';
+      std::cerr << "Errore: dimensione pattern non valida per " << patternNames[i] << '\n';
       return -1;
     }
 
     auto binary(hope::formImage(binaryVector));
 
     if (!resizedImage.saveToFile("./patterns/resized/" + patternNames[i])) {
-      std::cerr << "Errore nel salvataggio immagine ridimensionata: "
-                << patternNames[i] << '\n';
+      std::cerr << "Errore nel salvataggio immagine ridimensionata: " << patternNames[i] << '\n';
       return -1;
     }
 
     if (!binary.saveToFile("./patterns/binary/" + patternNames[i])) {
-      std::cerr << "Errore nel salvataggio immagine binaria: "
-                << patternNames[i] << '\n';
+      std::cerr << "Errore nel salvataggio immagine binaria: " << patternNames[i] << '\n';
       return -1;
     }
 
@@ -44,14 +42,13 @@ int main() {
   }
 
   auto W = hope::computeMatrix(patterns);
-  hope::saveMatrix(
-      W, "./matrix/WeightMatrix.txt"); // stampare su file testo la matrice
+  hope::saveMatrix(W, "./matrix/WeightMatrix.txt"); // stampare su file testo la matrice
 
   std::cout << "Fase di apprendimento completata e matrice salvata.\n";
 
   // FASE DI CORRUZIONE
   sf::Image subject;
-  if (!subject.loadFromFile("./patterns/original/exuvia.jpg")) {
+  if (!subject.loadFromFile("./patterns/original/kirby.png")) {
     std::cerr << "Errore nel caricamento dell'immagine\n";
     return -1;
   }
@@ -65,10 +62,10 @@ int main() {
 
   // FASE DI RICHIAMO (RECALL)
 
-  //Classic Hopfield
-  auto recallVector{hope::recall(corruptedSubject, W)};
+  // Classic Hopfield
+   auto recallVector{hope::recall(corruptedSubject, W)};
 
-  //Modern Hopfield
+  // Modern Hopfield
   // auto recallVector{hope::recallDAM(corruptedSubject, patterns)};
 
   sf::Image binaryR(hope::formImage(recallVector));

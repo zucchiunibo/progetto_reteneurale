@@ -13,11 +13,9 @@
 namespace hope {
 
 // Calcolo dell'energia Lyapunov della rete
-double energy(const std::vector<int>& state,
-              const std::vector<std::vector<double>>& W) {
+double energy(const std::vector<int>& state, const std::vector<std::vector<double>>& W) {
   if (W.size() != state.size())
-    throw std::invalid_argument(
-        "La matrice W e lo stato hanno dimensioni incompatibili.");
+    throw std::invalid_argument("La matrice W e lo stato hanno dimensioni incompatibili.");
 
   const auto N{static_cast<unsigned int>(state.size())};
   double E{0.0};
@@ -29,9 +27,8 @@ double energy(const std::vector<int>& state,
   return -0.5 * E;
 }
 
-// Funzione di recall della rete di Hopfield classica (MANCANO ERRORI)
-std::vector<int> recall(std::vector<int> state,
-                        const std::vector<std::vector<double>>& W) {
+// Funzione di recall della rete di Hopfield classica (MANCANO ERRORI E ACCUMULATE)
+std::vector<int> recall(std::vector<int> state, const std::vector<std::vector<double>>& W) {
   const auto N{static_cast<unsigned int>(state.size())};
 
   double prevEnergy = energy(state, W);
@@ -46,10 +43,12 @@ std::vector<int> recall(std::vector<int> state,
     std::vector<int> newVector(N);
 
     for (unsigned int n{0}; n < N; ++n) {
-      double sum{0.0};
-      for (unsigned int m{0}; m < N; ++m) {
-        sum += static_cast<double>(W[n][m] * state[m]);
-      }
+      double sum{
+          std::accumulate(W[n].begin(), W[n].end(), 0.0, [&state, &W, n](double acc, size_t m = 0) {
+            acc += W[n][m] * state[m];
+            ++m;
+            return acc;
+          })};
 
       newVector[n] = (sum >= 0) ? 1 : -1;
       if (newVector[n] == state[n])
@@ -58,13 +57,6 @@ std::vector<int> recall(std::vector<int> state,
 
     double currentEnergy = energy(newVector, W);
     std::cout << "Iterazione " << t << ", Energia: " << currentEnergy << '\n';
-
-    sf::Image recallImage = hope::formImage(newVector);
-    if (!recallImage.saveToFile("./patterns/recall/resultRecall"
-                                + std::to_string(t) + ".png")) {
-      std::cerr << "Errore nel salvataggio dell'immagine al passo " << t
-                << '\n';
-    }
 
     // RIGUARDA MEGLIO
     if (currentEnergy > prevEnergy + 1e-6) {
@@ -77,7 +69,16 @@ std::vector<int> recall(std::vector<int> state,
     // Controllo di convergenza
     if (unchanged == N) {
       std::cout << "La rete ha raggiunto uno stato stabile.\n";
-      converged = true;
+      converged             = true;
+      sf::Image recallImage = hope::formImage(newVector);
+      if (!recallImage.saveToFile("./patterns/recall/resultRecallFinal.png")) {
+        std::cerr << "Errore nel salvataggio dell'immagine al passo finale\n";
+      }
+    } else {
+      sf::Image recallImage = hope::formImage(newVector);
+      if (!recallImage.saveToFile("./patterns/recall/resultRecall" + std::to_string(t) + ".png")) {
+        std::cerr << "Errore nel salvataggio dell'immagine al passo " << t << '\n';
+      }
     }
 
     state = newVector;
@@ -87,7 +88,8 @@ std::vector<int> recall(std::vector<int> state,
   return state;
 }
 
-// Funzione di recall della rete di Hopfield con Simulated Annealing (DA REVISIONARE)
+// Funzione di recall della rete di Hopfield con Simulated Annealing (DA
+// REVISIONARE)
 std::vector<int> simAnnealing(std::vector<int> corrupted,
                               const std::vector<std::vector<double>>& W) {
   const int N = corrupted.size();
@@ -181,9 +183,9 @@ std::vector<int> simAnnealing(std::vector<int> corrupted,
   return corrupted;
 }
 
-// Funzione di recall della rete di Hopfield con DAM (Dynamic Associative Memory) (DA REVISIONARE)
-std::vector<int> recallDAM(std::vector<int> state,
-                           const std::vector<std::vector<int>>& patterns,
+// Funzione di recall della rete di Hopfield con DAM (Dynamic Associative
+// Memory) (DA REVISIONARE)
+std::vector<int> recallDAM(std::vector<int> state, const std::vector<std::vector<int>>& patterns,
                            int n = 4 // esponente per F(z) = z^n
 ) {
   const size_t N            = state.size();
@@ -211,8 +213,6 @@ std::vector<int> recallDAM(std::vector<int> state,
 
   return newState;
 }
-
-
 
 } // namespace hope
 
