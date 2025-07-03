@@ -4,10 +4,9 @@
 #include <iostream>
 
 int main() {
-    hope::clearMatrixDirectory("./matrix");
-  hope::clearMatrixDirectory("./patterns/recall");
-  std::vector<std::string> patternNames = {"kirby.png", "exuvia.jpg",
-                                           "A.jpg"};
+  hope::clearDirectory("./matrix");
+  hope::clearDirectory("./patterns/recall");
+  std::vector<std::string> patternNames = {"kirby.png", "A.jpg", "ledzeppelin.jpg", "exuvia.jpg"};
   std::vector<std::vector<int>> patterns;
 
   // FASE DI APPRENDIMENTO
@@ -53,13 +52,11 @@ int main() {
   // FASE DI CORRUZIONE
   sf::Image subject;
   if (!subject.loadFromFile("./patterns/original/exuvia.jpg")) {
-    std::cerr << "Errore nel caricamento dell'immagine kirby.jpg\n";
+    std::cerr << "Errore nel caricamento dell'immagine\n";
     return -1;
   }
 
-  sf::Image resizedSubject{hope::resize(subject)};
-  auto binarySubject{hope::binaryConvert(resizedSubject)};
-  auto corruptedSubject{hope::corruption(binarySubject)};
+  auto corruptedSubject{hope::directCorruption(subject)};
   sf::Image binaryC(hope::formImage(corruptedSubject));
   if (!binaryC.saveToFile("./patterns/corrupted/corrupted.png")) {
     std::cerr << "Errore nel salvataggio dell'immagine corrotta\n";
@@ -67,7 +64,13 @@ int main() {
   }
 
   // FASE DI RICHIAMO (RECALL)
-  auto recallVector{hope::recallIA(corruptedSubject, W)};
+
+  //Classic Hopfield
+  auto recallVector{hope::recall(corruptedSubject, W)};
+
+  //Modern Hopfield
+  // auto recallVector{hope::recallDAM(corruptedSubject, patterns)};
+
   sf::Image binaryR(hope::formImage(recallVector));
 
   if (!binaryR.saveToFile("./patterns/recall/resultRecallFinal.png")) {

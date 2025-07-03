@@ -60,7 +60,7 @@ void saveMatrix(const std::vector<std::vector<double>>& W,
   }
 }
 
-void clearMatrixDirectory(const std::string& path) {
+void clearDirectory(const std::string& path) {
   namespace fs = std::filesystem;
 
   if (!fs::exists(path)) {

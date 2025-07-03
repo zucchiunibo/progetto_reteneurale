@@ -121,10 +121,17 @@ sf::Image formImage(std::vector<int> binary) { // forms NxN image
 auto corruption(std::vector<int> binary) { // corrupts 10% of the image
   std::default_random_engine eng(std::random_device{}());
   std::uniform_real_distribution<double> dist_x{0., 10.};
-  for (int n{0}; n < (64 * 64); ++n) {
-    if (dist_x(eng) > 9.5) {
+  for (unsigned int n{0}; n < static_cast<unsigned int>((64 * 64)); ++n) {
+    if (dist_x(eng) > 9) {
       binary[n] *= -1;
     }
+  }
+  return binary;
+}
+
+auto cutting(std::vector<int> binary) { // corrupts 10% of the image
+  for (int n{0}; n < static_cast<unsigned int>((64 * 64)/2); ++n) {
+    binary[n] = -1;
   }
   return binary;
 }
@@ -134,9 +141,14 @@ auto directBinaryConvert(sf::Image source) { // converts and resizes original im
   return binaryConvert(resized);
 }
 
-auto directCorrupt (sf::Image source) { // resizes, converts, and corrupts original image
+auto directCorruption(sf::Image source) { // resizes, converts, and corrupts original image
   auto binary{directBinaryConvert(source)};
   return corruption(binary);
+}
+
+auto directCutting(sf::Image source) { // resizes, converts, and corrupts original image
+  auto binary{directBinaryConvert(source)};
+  return cutting(binary);
 }
 
 } // namespace hope

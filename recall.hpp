@@ -12,7 +12,7 @@
 
 namespace hope {
 
-// Calcolo dell'energia della rete (Lyapunov function)
+// Calcolo dell'energia Lyapunov della rete
 double energy(const std::vector<int>& state,
               const std::vector<std::vector<double>>& W) {
   if (W.size() != state.size())
@@ -29,147 +29,65 @@ double energy(const std::vector<int>& state,
   return -0.5 * E;
 }
 
-std::vector<int> recall(std::vector<int> corrupted,
+// Funzione di recall della rete di Hopfield classica (MANCANO ERRORI)
+std::vector<int> recall(std::vector<int> state,
                         const std::vector<std::vector<double>>& W) {
-  const auto N{static_cast<unsigned int>(corrupted.size())};
+  const auto N{static_cast<unsigned int>(state.size())};
 
-  sf::RenderWindow window(sf::VideoMode(800, 600), "Hopfield Recall");
-  sf::Texture texture;
-
-  double prevEnergy = energy(corrupted, W);
+  double prevEnergy = energy(state, W);
   std::cout << "Energia iniziale: " << prevEnergy << '\n';
 
   int unchanged{0};
   int t{0};
+  bool converged{false};
 
-  while (window.isOpen()) {
+  while (!converged) {
     unchanged = 0;
     std::vector<int> newVector(N);
 
     for (unsigned int n{0}; n < N; ++n) {
       double sum{0.0};
       for (unsigned int m{0}; m < N; ++m) {
-        sum += static_cast<double>(W[n][m] * corrupted[m]);
+        sum += static_cast<double>(W[n][m] * state[m]);
       }
 
       newVector[n] = (sum >= 0) ? 1 : -1;
-      if (newVector[n] == corrupted[n])
+      if (newVector[n] == state[n])
         ++unchanged;
     }
 
-    double current_energy = energy(newVector, W);
-    std::cout << "Energia attuale: " << current_energy << '\n';
+    double currentEnergy = energy(newVector, W);
+    std::cout << "Iterazione " << t << ", Energia: " << currentEnergy << '\n';
+
+    sf::Image recallImage = hope::formImage(newVector);
+    if (!recallImage.saveToFile("./patterns/recall/resultRecall"
+                                + std::to_string(t) + ".png")) {
+      std::cerr << "Errore nel salvataggio dell'immagine al passo " << t
+                << '\n';
+    }
 
     // RIGUARDA MEGLIO
-    if (current_energy > prevEnergy + 1e-6) {
+    if (currentEnergy > prevEnergy + 1e-6) {
       std::cerr << "Errore: energia aumentata! La rete non sta convergendo.\n";
       break;
     }
 
-    prevEnergy = current_energy;
-
-    // Salvataggio e visualizzazione dell'immagine attuale
-    sf::Image recallImage = hope::formImage(newVector);
-
-    if (!recallImage.saveToFile("./patterns/recall/resultRecall"
-                                + std::to_string(t) + ".png")) {
-      std::cerr << "Errore: impossibile salvare l'immagine resultRecall.png\n";
-      break;
-    }
-
-    if (!texture.loadFromFile("./patterns/recall/resultRecall.png")) {
-      std::cerr << "Errore: impossibile caricare la texture resultRecall.png\n";
-      break;
-    }
-
-    sf::Sprite image(texture);
+    prevEnergy = currentEnergy;
 
     // Controllo di convergenza
     if (unchanged == N) {
       std::cout << "La rete ha raggiunto uno stato stabile.\n";
-
-      // Tenere aperta la finestra finchè non viene chiusa
-
-      sf::Event event;
-      window.clear(sf::Color::Black);
-      window.draw(image);
-      window.display();
-
-      while (window.waitEvent(event)) {
-        if (event.type == sf::Event::Closed)
-          window.close();
-      }
-
-      break;
+      converged = true;
     }
 
-    corrupted = newVector;
-    ++t;
-  }
-
-  return corrupted;
-}
-
-
-std::vector<int> recallIA(std::vector<int> corrupted,
-                        const std::vector<std::vector<double>>& W) {
-  const unsigned int N = corrupted.size();
-  std::vector<int> state = corrupted;
-
-  std::random_device rd;
-  std::mt19937 g(rd());
-
-  double prevEnergy = energy(state, W);
-  std::cout << "Energia iniziale: " << prevEnergy << '\n';
-
-  int maxIterations = 100;
-  int t = 0;
-
-  while (t < maxIterations) {
-    // Crea ordine casuale per aggiornamento asincrono
-    std::vector<int> indices(N);
-    std::iota(indices.begin(), indices.end(), 0);
-    std::shuffle(indices.begin(), indices.end(), g);
-
-    bool anyChange = false;
-
-    for (int i : indices) {
-      double sum = 0.0;
-      for (unsigned int j = 0; j < N; ++j)
-        sum += W[i][j] * state[j];
-
-      int newValue = (sum >= 0) ? 1 : -1;
-      if (state[i] != newValue) {
-        state[i] = newValue;
-        anyChange = true;
-      }
-    }
-
-    // Calcolo energia
-    double currentEnergy = energy(state, W);
-    std::cout << "Iterazione " << t << ", Energia: " << currentEnergy << '\n';
-
-    // Salva l'immagine a ogni step
-    sf::Image recallImage = hope::formImage(state);
-    if (!recallImage.saveToFile("./patterns/recall/resultRecall" + std::to_string(t) + ".png")) {
-      std::cerr << "Errore nel salvataggio dell'immagine resultRecall\n";
-    }
-
-    // Condizione di stop
-    if (!anyChange || std::abs(currentEnergy - prevEnergy) < 1e-6) {
-      std::cout << "Convergenza raggiunta dopo " << t << " iterazioni.\n";
-      break;
-    }
-
-    prevEnergy = currentEnergy;
+    state = newVector;
     ++t;
   }
 
   return state;
 }
 
-
-// Funzione di recall della rete di Hopfield
+// Funzione di recall della rete di Hopfield con Simulated Annealing (DA REVISIONARE)
 std::vector<int> simAnnealing(std::vector<int> corrupted,
                               const std::vector<std::vector<double>>& W) {
   const int N = corrupted.size();
@@ -262,6 +180,39 @@ std::vector<int> simAnnealing(std::vector<int> corrupted,
 
   return corrupted;
 }
+
+// Funzione di recall della rete di Hopfield con DAM (Dynamic Associative Memory) (DA REVISIONARE)
+std::vector<int> recallDAM(std::vector<int> state,
+                           const std::vector<std::vector<int>>& patterns,
+                           int n = 4 // esponente per F(z) = z^n
+) {
+  const size_t N            = state.size();
+  const size_t P            = patterns.size();
+  std::vector<int> newState = state;
+
+  auto F = [&](double z) { return std::pow(z, n); };
+
+  for (size_t l = 0; l < N; ++l) {
+    double sumPlus = 0.0, sumMinus = 0.0;
+    // valuta state con ξ[l]=+1 / -1
+    for (size_t mu = 0; mu < P; ++mu) {
+      double dotPlus = 0.0, dotMinus = 0.0;
+      for (size_t k = 0; k < N; ++k) {
+        int s = (k == l ? +1 : state[k]);
+        dotPlus += patterns[mu][k] * s;
+        s = (k == l ? -1 : state[k]);
+        dotMinus += patterns[mu][k] * s;
+      }
+      sumPlus += F(dotPlus);
+      sumMinus += F(dotMinus);
+    }
+    newState[l] = (sumPlus - sumMinus >= 0) ? +1 : -1;
+  }
+
+  return newState;
+}
+
+
 
 } // namespace hope
 
