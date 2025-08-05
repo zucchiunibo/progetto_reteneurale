@@ -29,7 +29,7 @@ double energy(const std::vector<int>& state, const std::vector<std::vector<doubl
 
 // Funzione di recall della rete di Hopfield classica (MANCANO ERRORI E ACCUMULATE)
 std::vector<int> recall(std::vector<int> state, const std::vector<std::vector<double>>& W) {
-  const auto N{static_cast<unsigned int>(state.size())};
+  const auto N{static_cast<unsigned int>(state.size())}; // numero di neuroni
 
   double prevEnergy = energy(state, W);
   std::cout << "Energia iniziale: " << prevEnergy << '\n';
@@ -43,12 +43,11 @@ std::vector<int> recall(std::vector<int> state, const std::vector<std::vector<do
     std::vector<int> newVector(N);
 
     for (unsigned int n{0}; n < N; ++n) {
-      double sum{
-          std::accumulate(W[n].begin(), W[n].end(), 0.0, [&state, &W, n](double acc, size_t m = 0) {
-            acc += W[n][m] * state[m];
-            ++m;
-            return acc;
-          })};
+      double sum{std::accumulate(W[n].begin(), W[n].end(), 0.0, [&state, &W, n](double acc, size_t m = 0) {
+        acc += W[n][m] * state[m];
+        ++m;
+        return acc;
+      })};
 
       newVector[n] = (sum >= 0) ? 1 : -1;
       if (newVector[n] == state[n])
@@ -90,45 +89,46 @@ std::vector<int> recall(std::vector<int> state, const std::vector<std::vector<do
 
 // Funzione di recall della rete di Hopfield con Simulated Annealing (DA
 // REVISIONARE)
-std::vector<int> simAnnealing(std::vector<int> corrupted,
-                              const std::vector<std::vector<double>>& W) {
-  const int N = corrupted.size();
+std::vector<int> simAnnealing(std::vector<int> state, const std::vector<std::vector<double>>& W) {
+  const auto N{static_cast<unsigned int>(state.size())};
+
   sf::RenderWindow window(sf::VideoMode(800, 600), "Hopfield Recall");
   sf::Texture texture;
 
-  double prev_energy = energy(corrupted, W);
-  std::cout << "Energia iniziale: " << prev_energy << '\n';
+  double prevEnergy{energy(state, W)};
+  std::cout << "Energia iniziale: " << prevEnergy << '\n';
 
-  double T     = 1.0;  // Temperatura iniziale
-  double Tmin  = 0.01; // Temperatura minima finale
-  double alpha = 0.95; // Fattore di raffreddamento (0 < alpha < 1)
+  double T{1.0};      // Temperatura iniziale
+  double Tmin{0.01};  // Temperatura minima finale
+  double alpha{0.95}; // Fattore di raffreddamento (0 < alpha < 1)
 
   std::random_device rd;
   std::mt19937 gen(rd());
   std::uniform_real_distribution<> dis(0.0, 1.0);
 
+  int unchanged{0};
+
   while (window.isOpen()) {
+    unchanged = 0;
     std::vector<int> newVector(N);
-    int unchanged = 0;
 
-    for (int n = 0; n < N; ++n) {
-      double sum = 0.0;
+    for (unsigned int n{0}; n < N; ++n) {
+      double sum{std::accumulate(W[n].begin(), W[n].end(), 0.0, [&state, &W, n](double acc, size_t m = 0) {
+        acc += W[n][m] * state[m];
+        ++m;
+        return acc;
+      })};
 
-      for (int m = 0; m < N; ++m) {
-        sum += W[n][m] * corrupted[m];
-      }
+      double deltaEnergy{2.0 * sum * state[n]}; // energia di flip di un neurone (ottenuta come differenza)
 
-      double delta_energy = 2.0 * sum * corrupted[n];
+      double P = 1.0 / (1.0 + std::exp(deltaEnergy / T));
 
-      double P = 1.0 / (1.0 + std::exp(delta_energy / T));
-
-      double r = dis(gen);
+      double r = dis(gen); // numero casuale tra 0 e 1
 
       if (r < P) {
-        // Cambio stato neurone
-        newVector[n] = -corrupted[n];
+        newVector[n] = -state[n];
       } else {
-        newVector[n] = corrupted[n];
+        newVector[n] = state[n];
         ++unchanged;
       }
     }
@@ -137,11 +137,11 @@ std::vector<int> simAnnealing(std::vector<int> corrupted,
     if (T < 1e-3)
       T = 1e-3;
 
-    double current_energy = energy(newVector, W);
-    std::cout << "Energia attuale: " << current_energy << '\n';
+    double currentEnergy = energy(newVector, W);
+    std::cout << "Energia attuale: " << currentEnergy << '\n';
     std::cout << "T attuale: " << T << '\n';
 
-    prev_energy = current_energy;
+    prevEnergy = currentEnergy;
 
     // Salvataggio e visualizzazione dell'immagine attuale
     sf::Image recallImage = hope::formImage(newVector);
@@ -186,8 +186,8 @@ std::vector<int> simAnnealing(std::vector<int> corrupted,
 // Funzione di recall della rete di Hopfield con DAM (Dynamic Associative
 // Memory) (DA REVISIONARE)
 std::vector<int> recallDAM(std::vector<int> state, const std::vector<std::vector<int>>& patterns,
-                           int n = 4 // esponente per F(z) = z^n
-) {
+                           int n = 4) // esponente per F(z) = z^n
+{
   const size_t N            = state.size();
   const size_t P            = patterns.size();
   std::vector<int> newState = state;
