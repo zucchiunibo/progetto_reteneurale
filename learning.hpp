@@ -3,23 +3,21 @@
 
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include <iostream>
 
 namespace hope {
 
 // Hebb's rule
-std::vector<std::vector<double>>
-computeMatrix(const std::vector<std::vector<int>>& patterns) {
+std::vector<std::vector<double>> computeMatrix(const std::vector<std::vector<int>>& patterns) {
   auto N{patterns[0].size()}; // number of neurons (pixels) per image
   auto P{patterns.size()};    // pattern number
 
   for (const auto& pattern : patterns) {
     if (pattern.size() != N)
-      throw std::invalid_argument(
-          "Tutti i pattern devono avere la stessa dimensione.");
+      throw std::invalid_argument("Tutti i pattern devono avere la stessa dimensione.");
   }
 
   std::vector<std::vector<double>> W(N, std::vector<double>(N, 0.0));
@@ -33,6 +31,8 @@ computeMatrix(const std::vector<std::vector<int>>& patterns) {
         }
 
         W[i][j] = muSum / static_cast<double>(N);
+      } else {
+        W[i][j] = 0.0;
       }
     }
   }
@@ -40,14 +40,12 @@ computeMatrix(const std::vector<std::vector<int>>& patterns) {
   return W;
 }
 
-void saveMatrix(const std::vector<std::vector<double>>& W,
-                const std::string& filename) {
+void saveMatrix(const std::vector<std::vector<double>>& W, const std::string& filename) { // [C'E' UNA RIGA ECCESSIVA ALLA FINE]
   auto N{W.size()};
   std::ofstream out(filename);
 
   if (!out)
-    throw std::runtime_error(
-        "Errore: impossibile aprire file per il salvataggio della matrice.");
+    throw std::runtime_error("Errore: impossibile aprire file per il salvataggio della matrice.");
 
   for (unsigned int i{0}; i < static_cast<unsigned int>(N); ++i) {
     for (unsigned int j{0}; j < static_cast<unsigned int>(N); ++j) {

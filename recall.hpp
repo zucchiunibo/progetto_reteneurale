@@ -7,6 +7,7 @@
 #include <cmath>
 #include <iostream>
 #include <random>
+#include <ranges>
 #include <string>
 #include <vector>
 
@@ -43,25 +44,18 @@ std::vector<int> recall(std::vector<int> state, const std::vector<std::vector<do
     std::vector<int> newVector(N);
 
     for (unsigned int n{0}; n < N; ++n) {
-      double sum{std::accumulate(W[n].begin(), W[n].end(), 0.0, [&state, &W, n](double acc, size_t m = 0) {
-        acc += W[n][m] * state[m];
-        ++m;
-        return acc;
-      })};
+      double sum{0.0};
+      for (size_t m = 0; m < N; ++m) {
+        sum += W[n][m] * state[m];
+      }
 
-      newVector[n] = (sum >= 0) ? 1 : -1;
+      newVector[n] = (sum >= 0.0) ? 1 : -1;
       if (newVector[n] == state[n])
         ++unchanged;
     }
 
     double currentEnergy = energy(newVector, W);
     std::cout << "Iterazione " << t << ", Energia: " << currentEnergy << '\n';
-
-    // RIGUARDA MEGLIO
-    if (currentEnergy > prevEnergy + 1e-6) {
-      std::cerr << "Errore: energia aumentata! La rete non sta convergendo.\n";
-      break;
-    }
 
     prevEnergy = currentEnergy;
 
@@ -91,96 +85,65 @@ std::vector<int> recall(std::vector<int> state, const std::vector<std::vector<do
 // REVISIONARE)
 std::vector<int> simAnnealing(std::vector<int> state, const std::vector<std::vector<double>>& W) {
   const auto N{static_cast<unsigned int>(state.size())};
-
-  sf::RenderWindow window(sf::VideoMode(800, 600), "Hopfield Recall");
-  sf::Texture texture;
+  int t{0}; // contatore di iterazioni
 
   double prevEnergy{energy(state, W)};
   std::cout << "Energia iniziale: " << prevEnergy << '\n';
 
-  double T{1.0};      // Temperatura iniziale
-  double Tmin{0.01};  // Temperatura minima finale
-  double alpha{0.95}; // Fattore di raffreddamento (0 < alpha < 1)
+  double T{5.0};      // Temperatura iniziale
+  double Tmin{0.1};   // Temperatura minima finale
+  double alpha{0.98}; // Fattore di raffreddamento (0 < alpha < 1)
 
   std::random_device rd;
   std::mt19937 gen(rd());
   std::uniform_real_distribution<> dis(0.0, 1.0);
 
-  int unchanged{0};
+  bool converged{false};
 
-  while (window.isOpen()) {
-    unchanged = 0;
-    std::vector<int> newVector(N);
-
+  while (!converged) {
     for (unsigned int n{0}; n < N; ++n) {
-      double sum{std::accumulate(W[n].begin(), W[n].end(), 0.0, [&state, &W, n](double acc, size_t m = 0) {
-        acc += W[n][m] * state[m];
-        ++m;
-        return acc;
-      })};
+      double sum{0.0};
+      for (size_t m = 0; m < N; ++m) {
+        sum += W[n][m] * state[m];
+      }
 
       double deltaEnergy{2.0 * sum * state[n]}; // energia di flip di un neurone (ottenuta come differenza)
 
-      double P = 1.0 / (1.0 + std::exp(deltaEnergy / T));
+      double P{1.0 / (1.0 + std::exp(deltaEnergy / T))};
 
-      double r = dis(gen); // numero casuale tra 0 e 1
+      double r{dis(gen)}; // numero casuale tra 0 e 1
 
       if (r < P) {
-        newVector[n] = -state[n];
-      } else {
-        newVector[n] = state[n];
-        ++unchanged;
+        state[n] = -state[n];
       }
     }
 
     T *= alpha;
-    if (T < 1e-3)
-      T = 1e-3;
 
-    double currentEnergy = energy(newVector, W);
+    double currentEnergy = energy(state, W);
     std::cout << "Energia attuale: " << currentEnergy << '\n';
     std::cout << "T attuale: " << T << '\n';
 
     prevEnergy = currentEnergy;
 
-    // Salvataggio e visualizzazione dell'immagine attuale
-    sf::Image recallImage = hope::formImage(newVector);
-
-    if (!recallImage.saveToFile("./patterns/binary/resultRecall.png")) {
-      std::cerr << "Errore: impossibile salvare l'immagine resultRecall.png\n";
-      break;
-    }
-
-    if (!texture.loadFromFile("./patterns/binary/resultRecall.png")) {
-      std::cerr << "Errore: impossibile caricare la texture resultRecall.png\n";
-      break;
-    }
-
-    sf::Sprite image(texture);
-
     // Controllo di convergenza
-    if ((unchanged == N) || (T == Tmin)) {
+    if (T <= Tmin) {
       std::cout << "La rete ha raggiunto uno stato stabile.\n";
-
-      // Tenere aperta la finestra finchè non viene chiusa
-
-      sf::Event event;
-      window.clear(sf::Color::Black);
-      window.draw(image);
-      window.display();
-
-      while (window.waitEvent(event)) {
-        if (event.type == sf::Event::Closed)
-          window.close();
+      converged             = true;
+      sf::Image recallImage = hope::formImage(state);
+      if (!recallImage.saveToFile("./patterns/recall/resultRecallFinal.png")) {
+        std::cerr << "Errore nel salvataggio dell'immagine al passo finale\n";
       }
-
-      break;
     }
-
-    corrupted = newVector;
+    // else {
+    //   sf::Image recallImage = hope::formImage(state);
+    //   if (!recallImage.saveToFile("./patterns/recall/resultRecall" + std::to_string(t) + ".png")) {
+    //     std::cerr << "Errore nel salvataggio dell'immagine al passo " << t << '\n';
+    //   }
+    // }
+    ++t;
   }
-
-  return corrupted;
+  return state;
 }
 
 // Funzione di recall della rete di Hopfield con DAM (Dynamic Associative

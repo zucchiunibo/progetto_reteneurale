@@ -6,8 +6,7 @@
 int main() {
   hope::clearDirectory("./matrix");
   hope::clearDirectory("./patterns/recall");
-  std::vector<std::string> patternNames = {"kirby.png", "A.jpg", "ledzeppelin.jpg", "exuvia.jpg",
-                                           "spaceinv.jpg"};
+  std::vector<std::string> patternNames = {"kirby.png", "ledzeppelin.jpg"};
   std::vector<std::vector<int>> patterns;
 
   // FASE DI APPRENDIMENTO

@@ -122,7 +122,7 @@ auto corruption(std::vector<int> binary) { // corrupts 10% of the image
   std::default_random_engine eng(std::random_device{}());
   std::uniform_real_distribution<double> dist_x{0., 10.};
   for (unsigned int n{0}; n < static_cast<unsigned int>((64 * 64)); ++n) {
-    if (dist_x(eng) > 9) {
+    if (dist_x(eng) > 9.0) {
       binary[n] *= -1;
     }
   }
