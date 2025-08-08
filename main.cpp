@@ -6,7 +6,7 @@
 int main() {
   hope::clearDirectory("./matrix");
   hope::clearDirectory("./patterns/recall");
-  std::vector<std::string> patternNames = {"kirby.png", "ledzeppelin.jpg"};
+  std::vector<std::string> patternNames = {"kirby.png", "ledzeppelin.jpg", "exuvia.jpg", "A.jpg"};
   std::vector<std::vector<int>> patterns;
 
   // FASE DI APPRENDIMENTO
@@ -40,8 +40,8 @@ int main() {
     patterns.push_back(binaryVector);
   }
 
-  auto W = hope::computeMatrix(patterns);
-  hope::saveMatrix(W, "./matrix/WeightMatrix.txt"); // stampare su file testo la matrice
+  // auto W = hope::computeMatrix(patterns);
+  // hope::saveMatrix(W, "./matrix/WeightMatrix.txt"); // stampare su file testo la matrice
 
   std::cout << "Fase di apprendimento completata e matrice salvata.\n";
 
@@ -62,10 +62,12 @@ int main() {
   // FASE DI RICHIAMO (RECALL)
 
   // Classic Hopfield
-   auto recallVector{hope::recall(corruptedSubject, W)};
+   auto recallVector{hope::recallDAM(corruptedSubject, patterns)};
 
   // Modern Hopfield
   // auto recallVector{hope::recallDAM(corruptedSubject, patterns)};
+
+
 
   sf::Image binaryR(hope::formImage(recallVector));
 

@@ -90,7 +90,7 @@ std::vector<int> simAnnealing(std::vector<int> state, const std::vector<std::vec
   double prevEnergy{energy(state, W)};
   std::cout << "Energia iniziale: " << prevEnergy << '\n';
 
-  double T{5.0};      // Temperatura iniziale
+  double T{2.0};      // Temperatura iniziale
   double Tmin{0.1};   // Temperatura minima finale
   double alpha{0.98}; // Fattore di raffreddamento (0 < alpha < 1)
 
@@ -103,7 +103,7 @@ std::vector<int> simAnnealing(std::vector<int> state, const std::vector<std::vec
   while (!converged) {
     for (unsigned int n{0}; n < N; ++n) {
       double sum{0.0};
-      for (size_t m = 0; m < N; ++m) {
+      for (size_t m{0}; m < N; ++m) {
         sum += W[n][m] * state[m];
       }
 
@@ -148,8 +148,45 @@ std::vector<int> simAnnealing(std::vector<int> state, const std::vector<std::vec
 
 // Funzione di recall della rete di Hopfield con DAM (Dynamic Associative
 // Memory) (DA REVISIONARE)
-std::vector<int> recallDAM(std::vector<int> state, const std::vector<std::vector<int>>& patterns,
-                           int n = 4) // esponente per F(z) = z^n
+std::vector<int> recallDAM(std::vector<int>& state, const std::vector<std::vector<int>>& patterns) {
+  const auto N = state.size();
+  const auto P = patterns.size();
+
+  auto deltaEnergy = [N, P](std::vector<int>& state, const std::vector<std::vector<int>>& patterns, size_t k) {
+    double dE{0.0};
+
+    for (size_t mu{0}; mu < P; ++mu) {
+      double sumPlus{0.0};
+      double sumMinus{0.0};
+      for (size_t i{0}; i < N; ++i) {
+        if (i == k) {
+          sumPlus += patterns[mu][i];
+          sumMinus += -patterns[mu][i];
+        } else {
+          sumPlus += patterns[mu][i] * state[i];
+          sumMinus += patterns[mu][i] * state[i];
+        }
+      }
+      dE += std::pow(sumMinus, 4.0) - std::pow(sumPlus, 4.0);
+    }
+    return dE;
+  };
+
+  bool converged{false};
+  int unchanged{0};
+
+  // while (!converged) {
+  //   unchanged = 0;
+    for (size_t k{0}; k < N; ++k) {
+      state[k] = (deltaEnergy(state, patterns, k) >= 0) ? -1 : +1;
+    }
+
+    return state;
+  // }
+}
+
+std::vector<int> recallDAMAI(std::vector<int> state, const std::vector<std::vector<int>>& patterns,
+                             int n = 4) // esponente per F(z) = z^n
 {
   const size_t N            = state.size();
   const size_t P            = patterns.size();
