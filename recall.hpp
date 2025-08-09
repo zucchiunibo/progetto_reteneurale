@@ -146,11 +146,11 @@ std::vector<int> simAnnealing(std::vector<int> state, const std::vector<std::vec
 }
 
 // Funzione di recall della rete di Hopfield con DAM (DA RIVEDERE EXP)
-std::vector<int> recallDAM(std::vector<int>& state, const std::vector<std::vector<int>>& patterns, bool pol) {
+std::vector<int> recallDAM(std::vector<int>& state, const std::vector<std::vector<int>>& patterns, int n = 4) {
   const auto N = state.size();
   const auto P = patterns.size();
 
-  auto F = [pol](double z) { return pol ? static_cast<double>(std::pow(z, 4.0)) : static_cast<double>(std::exp(z)); };
+  auto F = [n](double z) { return static_cast<double>(std::pow(z, n)); };
 
   for (size_t k{0}; k < N; ++k) {
     double dE{0.0};

@@ -62,7 +62,7 @@ int main() {
   // FASE DI RICHIAMO (RECALL)
 
   // Classic Hopfield
-   auto recallVector{hope::recallDAM(corruptedSubject, patterns, true)};
+   auto recallVector{hope::recallDAM(corruptedSubject, patterns)};
 
   // Modern Hopfield
   // auto recallVector{hope::recallDAM(corruptedSubject, patterns)};
