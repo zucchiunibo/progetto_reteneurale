@@ -6,7 +6,7 @@
 int main() {
   hope::clearDirectory("./matrix");
   hope::clearDirectory("./patterns/recall");
-  std::vector<std::string> patternNames = {"kirby.png", "ledzeppelin.jpg", "exuvia.jpg", "A.jpg"};
+  std::vector<std::string> patternNames = {"kirby.png", "ledzeppelin.jpg", "exuvia.jpg", "A.jpg", "spaceinv.jpg", "yinyang.png", "orecchino.png"};
   std::vector<std::vector<int>> patterns;
 
   // FASE DI APPRENDIMENTO
@@ -47,7 +47,7 @@ int main() {
 
   // FASE DI CORRUZIONE
   sf::Image subject;
-  if (!subject.loadFromFile("./patterns/original/kirby.png")) {
+  if (!subject.loadFromFile("./patterns/original/spaceinv.jpg")) {
     std::cerr << "Errore nel caricamento dell'immagine\n";
     return -1;
   }
@@ -62,7 +62,7 @@ int main() {
   // FASE DI RICHIAMO (RECALL)
 
   // Classic Hopfield
-   auto recallVector{hope::recallDAM(corruptedSubject, patterns)};
+   auto recallVector{hope::recallDAM(corruptedSubject, patterns, true)};
 
   // Modern Hopfield
   // auto recallVector{hope::recallDAM(corruptedSubject, patterns)};

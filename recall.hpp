@@ -81,8 +81,7 @@ std::vector<int> recall(std::vector<int> state, const std::vector<std::vector<do
   return state;
 }
 
-// Funzione di recall della rete di Hopfield con Simulated Annealing (DA
-// REVISIONARE)
+// Funzione di recall della rete di Hopfield con Simulated Annealing (MANCANO ERRORI)
 std::vector<int> simAnnealing(std::vector<int> state, const std::vector<std::vector<double>>& W) {
   const auto N{static_cast<unsigned int>(state.size())};
   int t{0}; // contatore di iterazioni
@@ -146,72 +145,32 @@ std::vector<int> simAnnealing(std::vector<int> state, const std::vector<std::vec
   return state;
 }
 
-// Funzione di recall della rete di Hopfield con DAM (Dynamic Associative
-// Memory) (DA REVISIONARE)
-std::vector<int> recallDAM(std::vector<int>& state, const std::vector<std::vector<int>>& patterns) {
+// Funzione di recall della rete di Hopfield con DAM (DA RIVEDERE EXP)
+std::vector<int> recallDAM(std::vector<int>& state, const std::vector<std::vector<int>>& patterns, bool pol) {
   const auto N = state.size();
   const auto P = patterns.size();
 
-  auto deltaEnergy = [N, P](std::vector<int>& state, const std::vector<std::vector<int>>& patterns, size_t k) {
-    double dE{0.0};
+  auto F = [pol](double z) { return pol ? static_cast<double>(std::pow(z, 4.0)) : static_cast<double>(std::exp(z)); };
 
+  for (size_t k{0}; k < N; ++k) {
+    double dE{0.0};
+    double enPlus{0.0};
+    double enMinus{0.0};
     for (size_t mu{0}; mu < P; ++mu) {
       double sumPlus{0.0};
       double sumMinus{0.0};
       for (size_t i{0}; i < N; ++i) {
-        if (i == k) {
-          sumPlus += patterns[mu][i];
-          sumMinus += -patterns[mu][i];
-        } else {
-          sumPlus += patterns[mu][i] * state[i];
-          sumMinus += patterns[mu][i] * state[i];
-        }
+        sumPlus += (i == k) ? patterns[mu][i] : (patterns[mu][i] * state[i]);
+        sumMinus += (i == k) ? -patterns[mu][i] : (patterns[mu][i] * state[i]);
       }
-      dE += std::pow(sumMinus, 4.0) - std::pow(sumPlus, 4.0);
+      enPlus -= F(sumPlus);
+      enMinus -= F(sumMinus);
     }
-    return dE;
-  };
-
-  bool converged{false};
-  int unchanged{0};
-
-  // while (!converged) {
-  //   unchanged = 0;
-    for (size_t k{0}; k < N; ++k) {
-      state[k] = (deltaEnergy(state, patterns, k) >= 0) ? -1 : +1;
-    }
-
-    return state;
-  // }
-}
-
-std::vector<int> recallDAMAI(std::vector<int> state, const std::vector<std::vector<int>>& patterns,
-                             int n = 4) // esponente per F(z) = z^n
-{
-  const size_t N            = state.size();
-  const size_t P            = patterns.size();
-  std::vector<int> newState = state;
-
-  auto F = [&](double z) { return std::pow(z, n); };
-
-  for (size_t l = 0; l < N; ++l) {
-    double sumPlus = 0.0, sumMinus = 0.0;
-    // valuta state con ξ[l]=+1 / -1
-    for (size_t mu = 0; mu < P; ++mu) {
-      double dotPlus = 0.0, dotMinus = 0.0;
-      for (size_t k = 0; k < N; ++k) {
-        int s = (k == l ? +1 : state[k]);
-        dotPlus += patterns[mu][k] * s;
-        s = (k == l ? -1 : state[k]);
-        dotMinus += patterns[mu][k] * s;
-      }
-      sumPlus += F(dotPlus);
-      sumMinus += F(dotMinus);
-    }
-    newState[l] = (sumPlus - sumMinus >= 0) ? +1 : -1;
+    dE       = enMinus - enPlus;
+    state[k] = (dE >= 0) ? 1 : -1;
   }
 
-  return newState;
+  return state;
 }
 
 } // namespace hope
