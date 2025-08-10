@@ -129,8 +129,9 @@ auto corruption(std::vector<int> binary) { // corrupts 10% of the image
   return binary;
 }
 
-auto cutting(std::vector<int> binary) { // corrupts 10% of the image
-  for (int n{0}; n < static_cast<unsigned int>((64 * 64)/2); ++n) {
+auto cutting(std::vector<int> binary) { // cuts first half of image
+  auto N{binary.size()};
+  for (size_t n{0}; n < static_cast<size_t>(N/2); ++n) {
     binary[n] = -1;
   }
   return binary;

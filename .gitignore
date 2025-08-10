@@ -1,1 +1,7 @@
 .vscode/settings.json
+build/Release/progetto
+build/Debug/progetto
+build/CMakeFiles/progetto.dir/Release/main.cpp.o
+build/CMakeFiles/progetto.dir/Debug/main.cpp.o
+build/.ninja_log
+build/.ninja_deps

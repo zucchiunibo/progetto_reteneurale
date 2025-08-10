@@ -43,7 +43,7 @@ std::vector<int> recall(std::vector<int> state, const std::vector<std::vector<do
     unchanged = 0;
     std::vector<int> newVector(N);
 
-    for (unsigned int n{0}; n < N; ++n) {
+    for (size_t n{0}; n < N; ++n) {
       double sum{0.0};
       for (size_t m = 0; m < N; ++m) {
         sum += W[n][m] * state[m];
@@ -60,7 +60,7 @@ std::vector<int> recall(std::vector<int> state, const std::vector<std::vector<do
     prevEnergy = currentEnergy;
 
     // Controllo di convergenza
-    if (unchanged == N) {
+    if (unchanged == static_cast<int>(N)) {
       std::cout << "La rete ha raggiunto uno stato stabile.\n";
       converged             = true;
       sf::Image recallImage = hope::formImage(newVector);
