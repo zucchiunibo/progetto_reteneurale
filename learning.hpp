@@ -40,7 +40,7 @@ std::vector<std::vector<double>> computeMatrix(const std::vector<std::vector<int
   return W;
 }
 
-void saveMatrix(const std::vector<std::vector<double>>& W, const std::string& filename) { // [C'E' UNA RIGA ECCESSIVA ALLA FINE]
+void saveMatrix(const std::vector<std::vector<double>>& W, const std::string& filename = "W.txt") {
   auto N{W.size()};
   std::ofstream out(filename);
 
